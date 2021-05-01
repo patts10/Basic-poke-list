@@ -1,0 +1,55 @@
+
+<button class="previous">Previous</button>
+<button class="next">Next</button>
+<div class="body"></div>
+
+<script>
+
+  const previousButton = document.querySelector('.previous');
+  const nextButton = document.querySelector('.next');
+  const container = document.querySelector('.body')
+
+  let pokeInfo = '';
+
+  const pokeApi = 'https://pokeapi.co/api/v2/pokemon/';
+  const pokemonList = (api) => {
+
+    fetch(api).then( (data) => {
+      return data.json();
+    }).then( (info) => {
+      pokeInfo = info;
+
+
+      const fetchPromises = pokeInfo.results.map( e => {
+        return fetch(e.url).then( (pokeUrl) => {
+          return pokeUrl.json();
+        })
+      })
+  
+      Promise.all(fetchPromises).then( (result) => {
+        return result.reduce( (acc, e) => {
+            return `${acc}<h1>${e.name}</h1><img src="${e.sprites.front_default}"/>`
+        }, ``)
+      }).then( (htmlStr) => {
+        container.innerHTML = htmlStr;
+      })
+  
+    })
+
+    nextButton.onclick = (() => {
+        const pokeApiNext = pokeInfo.next;
+        if(pokeApiNext) {
+          return pokemonList(pokeApiNext);
+        }
+      })
+      previousButton.onclick = ( () => {
+        const pokeApiPrevious = pokeInfo.previous;
+        if(pokeApiPrevious){
+          return pokemonList(pokeApiPrevious);
+        }
+      })
+
+
+  }
+  pokemonList(pokeApi);
+</script>
